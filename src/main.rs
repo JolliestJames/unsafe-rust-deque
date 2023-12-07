@@ -500,20 +500,20 @@ impl<'a, T> CursorMut<'a, T> {
             unsafe {
                 let old_len = self.list.len;
                 let old_index = self.index.unwrap();
-                let prev = (*cursor.as_ptr()).front;
+                let next = (*cursor.as_ptr()).back;
 
-                let new_len = old_len - old_index;
-                let new_front = self.cursor;
-                let new_back = self.list.back;
-                let new_index = Some(0);
+                let new_len = old_index + 1;
+                let new_back = self.cursor;
+                let new_front = self.list.front;
+                let new_index = Some(old_index);
 
                 let output_len = old_len - new_len;
-                let output_front = self.list.front;
-                let output_back = prev;
+                let output_back = self.list.back;
+                let output_front = next;
 
-                if let Some(prev) = prev {
-                    (*cursor.as_ptr()).front = None;
-                    (*prev.as_ptr()).back = None;
+                if let Some(prev) = next {
+                    (*cursor.as_ptr()).back = None;
+                    (*next.as_ptr()).front = None;
                 }
 
                 self.list.len = new_len;
@@ -530,6 +530,76 @@ impl<'a, T> CursorMut<'a, T> {
             }
         } else {
             std::mem::replace(self.list, LinkedList::new())
+        }
+    }
+
+    pub fn splice_before(&mut self, mut input: LinkedList<T>) {
+        unsafe {
+            if input.is_empty() {
+            } else if let Some(cursor) = self.cursor {
+                let in_front = input.front.take().unwrap();
+                let in_back = input.back.take().unwrap();
+
+                if let Some(prev) = (*cursor.as_ptr()).front {
+                    (*prev.as_ptr()).back = Some(in_front);
+                    (*in_front.as_ptr()).front = Some(prev);
+                    (*cursor.as_ptr()).front = Some(in_back);
+                    (*in_back.as_ptr()).back = Some(cursor);
+                } else {
+                    (*cursor.as_ptr()).back = Some(in_back);
+                    (*in_back.as_ptr()).back = Some(cursor);
+                    self.list.front = Some(in_front);
+                }
+
+                *self.index.as_mut().unwrap() += input.len;
+            } else if let Some(back) = self.list.back {
+                let in_front = input.front.take().unwrap();
+                let in_back = input.back.take().unwrap();
+
+                (*back.as_ptr()).back = Some(in_front);
+                (*in_front.as_ptr()).front = Some(back);
+                self.list.back = Some(in_back);
+            } else {
+                std::mem::swap(self.list, &mut input);
+            }
+
+            self.list.len += input.len;
+            input.len = 0;
+        }
+    }
+
+    pub fn splice_after(&mut self, mut input: LinkedList<T>) {
+        unsafe {
+            if input.is_empty() {
+            } else if let Some(cursor) = self.cursor {
+                let in_front = input.front.take().unwrap();
+                let in_back = input.back.take().unwrap();
+
+                if let Some(prev) = (*cursor.as_ptr()).front {
+                    (*prev.as_ptr()).back = Some(in_front);
+                    (*in_front.as_ptr()).front = Some(prev);
+                    (*cursor.as_ptr()).front = Some(in_back);
+                    (*in_back.as_ptr()).back = Some(cursor);
+                } else {
+                    (*cursor.as_ptr()).back = Some(in_back);
+                    (*in_back.as_ptr()).back = Some(cursor);
+                    self.list.front = Some(in_front);
+                }
+
+                *self.index.as_mut().unwrap() += input.len;
+            } else if let Some(back) = self.list.back {
+                let in_front = input.front.take().unwrap();
+                let in_back = input.back.take().unwrap();
+
+                (*back.as_ptr()).back = Some(in_front);
+                (*in_front.as_ptr()).front = Some(back);
+                self.list.back = Some(in_back);
+            } else {
+                std::mem::swap(self.list, &mut input);
+            }
+
+            self.list.len += input.len;
+            input.len = 0;
         }
     }
 }
