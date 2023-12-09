@@ -575,25 +575,24 @@ impl<'a, T> CursorMut<'a, T> {
                 let in_front = input.front.take().unwrap();
                 let in_back = input.back.take().unwrap();
 
-                if let Some(prev) = (*cursor.as_ptr()).front {
-                    (*prev.as_ptr()).back = Some(in_front);
-                    (*in_front.as_ptr()).front = Some(prev);
-                    (*cursor.as_ptr()).front = Some(in_back);
-                    (*in_back.as_ptr()).back = Some(cursor);
+                if let Some(next) = (*cursor.as_ptr()).back {
+                    (*next.as_ptr()).front = Some(in_back);
+                    (*in_back.as_ptr()).back = Some(next);
+                    (*cursor.as_ptr()).back = Some(in_front);
+                    (*in_front.as_ptr()).front = Some(cursor);
                 } else {
-                    (*cursor.as_ptr()).back = Some(in_back);
-                    (*in_back.as_ptr()).back = Some(cursor);
-                    self.list.front = Some(in_front);
+                    (*cursor.as_ptr()).front = Some(in_front);
+                    (*in_front.as_ptr()).front = Some(cursor);
+                    self.list.back = Some(in_back);
                 }
 
-                *self.index.as_mut().unwrap() += input.len;
-            } else if let Some(back) = self.list.back {
+            } else if let Some(front) = self.list.front {
                 let in_front = input.front.take().unwrap();
                 let in_back = input.back.take().unwrap();
 
-                (*back.as_ptr()).back = Some(in_front);
-                (*in_front.as_ptr()).front = Some(back);
-                self.list.back = Some(in_back);
+                (*front.as_ptr()).front = Some(in_back);
+                (*in_back.as_ptr()).back = Some(front);
+                self.list.front = Some(in_front);
             } else {
                 std::mem::swap(self.list, &mut input);
             }
@@ -602,6 +601,19 @@ impl<'a, T> CursorMut<'a, T> {
             input.len = 0;
         }
     }
+}
+
+unsafe impl<T: Send> Send for LinkedList<T> {}
+unsafe impl<T: Sync> Sync for LinkedList<T> {}
+
+unsafe impl<'a, T:Send> Send for Iter<'a, T> {}
+unsafe impl<'a, T:Sync> Sync for Iter<'a, T> {}
+
+unsafe impl<'a, T:Send> Send for IterMut<'a, T> {}
+unsafe impl<'a, T:Sync> Sync for IterMut<'a, T> {}
+
+#[allow(dead_code)]
+fn assert_properties() {
 }
 
 fn main() {
