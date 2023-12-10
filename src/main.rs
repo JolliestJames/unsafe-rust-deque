@@ -670,6 +670,112 @@ mod test {
         assert_eq!(list.len(), 0);
 
         list.push_front(10);
+        assert_eq!(list.len(), 1);
+        assert_eq!(list.pop_front(), Some(10));
+        assert_eq!(list.len(), 0);
+        assert_eq!(list.pop_front(), None);
+        assert_eq!(list.len(), 0);
+
+        list.push_front(10);
+        assert_eq!(list.len(), 1);
+        list.push_front(20);
+        assert_eq!(list.len(), 2);
+        list.push_front(30);
+        assert_eq!(list.len(), 3);
+        assert_eq!(list.pop_front(), Some(30));
+        assert_eq!(list.len(), 2);
+        list.push_front(40);
+        assert_eq!(list.len(), 3);
+        assert_eq!(list.pop_front(), Some(40));
+        assert_eq!(list.len(), 2);
+        assert_eq!(list.pop_front(), Some(20));
+        assert_eq!(list.len(), 1);
+        assert_eq!(list.pop_front(), Some(10));
+        assert_eq!(list.len(), 0);
+        assert_eq!(list.pop_front(), None);
+        assert_eq!(list.len(), 0);
+        assert_eq!(list.pop_front(), None);
+        assert_eq!(list.len(), 0);
+    }
+
+    #[test]
+    fn test_basic() {
+        let mut m = LinkedList::new();
+
+        assert_eq!(m.pop_front(), None);
+        assert_eq!(m.pop_back(), None);
+        assert_eq!(m.pop_front(), None);
+        m.push_front(1);
+        assert_eq!(m.pop_front(), Some(1));
+        m.push_back(2);
+        m.push_back(3);
+        assert_eq!(m.len(), 2);
+        assert_eq!(m.pop_front(), Some(2));
+        assert_eq!(m.pop_front(), Some(3));
+        assert_eq!(m.len(), 0);
+        assert_eq!(m.pop_front(), None);
+        m.push_back(1);
+        m.push_back(3);
+        m.push_back(5);
+        m.push_back(7);
+        assert_eq!(m.pop_front(), Some(1));
+
+        let mut n = LinkedList::new();
+        n.push_front(2);
+        n.push_front(3);
+        {
+            assert_eq!(n.front().unwrap(), &3);
+            let x = n.front_mut().unwrap();
+            assert_eq!(*x, 3);
+            *x = 0;
+        }
+        {
+            assert_eq!(n.back().unwrap(), &2);
+            let y = n.back_mut().unwrap();
+            assert_eq!(*y, 2);
+            *y = 1;
+        }
+        assert_eq!(n.pop_front(), Some(0));
+        assert_eq!(n.pop_front(), Some(1));
+    }
+
+    #[test]
+    fn test_iterator() {
+        let m = generate_test();
+        for (i, elt) in m.iter().enumerate() {
+            assert_eq!(i as i32, *elt);
+        }
+        let mut n = LinkedList::new();
+        assert_eq!(n.iter().next(), None);
+        n.push_front(4);
+        let mut it = n.iter();
+        assert_eq!(it.size_hint(), (1, Some(1)));
+        assert_eq!(it.next().unwrap(), &4);
+        assert_eq!(it.size_hint(), (0, Some(0)));
+        assert_eq!(it.next(), None);
+    }
+
+    #[test]
+    fn test_double_iterator() {
+        let mut n = LinkedList::new();
+        assert_eq!(n.iter().next(), None);
+        n.push_front(4);
+        n.push_front(5);
+        n.push_front(6);
+        let mut it = n.iter();
+        assert_eq!(it.size_hint(), (3, Some(3)));
+        assert_eq!(it.next().unwrap(), &6);
+        assert_eq!(it.size_hint(), (2, Some(2)));
+        assert_eq!(it.next_back().unwrap(), &4);
+        assert_eq!(it.size_hint(), (1, Some(1)));
+        assert_eq!(it.next_back().unwrap(), &5);
+        assert_eq!(it.next_back(), None);
+        assert_eq!(it.next(), None);
+    }
+
+    #[test]
+    fn test_rev_iter() {
+        let m = generate_test();
     }
 }
 
