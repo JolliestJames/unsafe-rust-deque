@@ -136,7 +136,7 @@ impl<T> LinkedList<T> {
         unsafe { self.front.map(|node| &(*node.as_ptr()).elem) }
     }
 
-    pub fn front_mut(&mut self) -> Option<&T> {
+    pub fn front_mut(&mut self) -> Option<&mut T> {
         unsafe { self.front.map(|node| &mut (*node.as_ptr()).elem) }
     }
 
@@ -144,7 +144,7 @@ impl<T> LinkedList<T> {
         unsafe { self.back.map(|node| &(*node.as_ptr()).elem) }
     }
 
-    pub fn back_mut(&self) -> Option<&T> {
+    pub fn back_mut(&self) -> Option<&mut T> {
         unsafe { self.back.map(|node| &mut (*node.as_ptr()).elem) }
     }
 
@@ -277,7 +277,7 @@ impl<'a, T> Iterator for Iter<'a, T> {
         if self.len > 0 {
             self.front.map(|node| unsafe {
                 self.len -= 1;
-                self.len = (*node.as_ptr()).back;
+                self.front = (*node.as_ptr()).back;
                 &(*node.as_ptr()).elem
             })
         } else {
@@ -343,7 +343,7 @@ impl<'a, T> DoubleEndedIterator for IterMut<'a, T> {
     fn next_back(&mut self) -> Option<Self::Item> {
         if self.len > 0 {
             self.back.map(|node| unsafe {
-                self.len =- 1;
+                self.len -= 1;
                 self.back = (*node.as_ptr()).front;
                 &mut (*node.as_ptr()).elem
             })
@@ -511,7 +511,7 @@ impl<'a, T> CursorMut<'a, T> {
                 let output_back = self.list.back;
                 let output_front = next;
 
-                if let Some(prev) = next {
+                if let Some(next) = next {
                     (*cursor.as_ptr()).back = None;
                     (*next.as_ptr()).front = None;
                 }
@@ -647,6 +647,30 @@ fn assert_properties() {
     /// fn iter_mut_covariant<'i, 'a, T>(x: IterMut<'i, &'static T>) -> IterMut<'i, &'a T> { x }
     /// `
     fn iter_mut_invariant() {}
+}
+
+#[cfg(test)]
+mod test {
+    use super::LinkedList;
+
+    fn generate_test() -> LinkedList<i32> {
+        list_from(&[0, 1, 2, 3, 4, 5, 6])
+    }
+
+    fn list_from<T: Clone>(v: &[T]) -> LinkedList<T> {
+        v.iter().map(|x| (*x).clone()).collect()
+    }
+
+    #[test]
+    fn test_basic_front() {
+        let mut list = LinkedList::new();
+
+        assert_eq!(list.len(), 0);
+        assert_eq!(list.pop_front(), None);
+        assert_eq!(list.len(), 0);
+
+        list.push_front(10);
+    }
 }
 
 fn main() {
