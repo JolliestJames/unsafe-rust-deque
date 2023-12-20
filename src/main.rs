@@ -1,8 +1,8 @@
 use std::process::Command;
 
+mod linked_list;
 #[cfg(test)]
 mod test;
-mod linked_list;
 
 fn main() {
     let output = Command::new("cargo")
@@ -13,4 +13,3 @@ fn main() {
     let log = output.stdout;
     println!("{}", String::from_utf8_lossy(&log));
 }
-

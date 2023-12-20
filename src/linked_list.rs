@@ -9,7 +9,7 @@ pub struct LinkedList<T> {
     front: Link<T>,
     back: Link<T>,
     len: usize,
-    _boo: PhantomData<T>
+    _boo: PhantomData<T>,
 }
 
 type Link<T> = Option<NonNull<Node<T>>>;
@@ -35,7 +35,7 @@ pub struct IterMut<'a, T> {
 }
 
 pub struct IntoIter<T> {
-    list: LinkedList<T>
+    list: LinkedList<T>,
 }
 
 pub struct CursorMut<'a, T> {
@@ -410,7 +410,8 @@ impl<'a, T> CursorMut<'a, T> {
         } else if !self.list.is_empty() {
             self.cursor = self.list.front;
             self.index = Some(0);
-        } else {}
+        } else {
+        }
     }
 
     pub fn move_prev(&mut self) {
@@ -426,7 +427,8 @@ impl<'a, T> CursorMut<'a, T> {
         } else if !self.list.is_empty() {
             self.cursor = self.list.back;
             self.index = Some(self.list.len - 1);
-        } else {}
+        } else {
+        }
     }
 
     pub fn current(&mut self) -> Option<&mut T> {
@@ -585,7 +587,6 @@ impl<'a, T> CursorMut<'a, T> {
                     (*in_front.as_ptr()).front = Some(cursor);
                     self.list.back = Some(in_back);
                 }
-
             } else if let Some(front) = self.list.front {
                 let in_front = input.front.take().unwrap();
                 let in_back = input.back.take().unwrap();
@@ -606,11 +607,11 @@ impl<'a, T> CursorMut<'a, T> {
 unsafe impl<T: Send> Send for LinkedList<T> {}
 unsafe impl<T: Sync> Sync for LinkedList<T> {}
 
-unsafe impl<'a, T:Send> Send for Iter<'a, T> {}
-unsafe impl<'a, T:Sync> Sync for Iter<'a, T> {}
+unsafe impl<'a, T: Send> Send for Iter<'a, T> {}
+unsafe impl<'a, T: Sync> Sync for Iter<'a, T> {}
 
-unsafe impl<'a, T:Send> Send for IterMut<'a, T> {}
-unsafe impl<'a, T:Sync> Sync for IterMut<'a, T> {}
+unsafe impl<'a, T: Send> Send for IterMut<'a, T> {}
+unsafe impl<'a, T: Sync> Sync for IterMut<'a, T> {}
 
 #[allow(dead_code)]
 fn assert_properties() {
